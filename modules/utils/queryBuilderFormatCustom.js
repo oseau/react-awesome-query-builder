@@ -1,4 +1,5 @@
 "use strict";
+import isArray from "lodash/isArray";
 import { defaultValue } from "./stuff";
 import {
   getFieldConfig,
@@ -19,11 +20,23 @@ export const queryBuilderFormatCustom = (item, config) => {
   const properties = item.get("properties");
 
   if (item.get("type") === "rule") {
-    return {
-      operator: properties.get("operator"),
-      field: properties.get("field"),
-      value: flatten(properties.get("value"))
-    };
+    let valueTemp = flatten(properties.get("value"));
+    if (isArray(valueTemp) || valueTemp.size > 1) {
+      if (valueTemp.size > 1) {
+        valueTemp = valueTemp.toJS();
+      }
+      return {
+        operator: properties.get("operator"),
+        field: properties.get("field"),
+        values: valueTemp.map(i => i.toString())
+      };
+    } else {
+      return {
+        operator: properties.get("operator"),
+        field: properties.get("field"),
+        value: valueTemp.toString()
+      };
+    }
   } else {
     return {
       rules: item
